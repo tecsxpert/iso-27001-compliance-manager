@@ -1,13 +1,18 @@
 package com.internship.tool.service;
 
 import com.internship.tool.entity.FileRecord;
-import com.internship.tool.repository.FileRepository;
 import com.internship.tool.exception.ValidationException;
+import com.internship.tool.repository.FileRepository;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 @Service
@@ -21,42 +26,92 @@ public class FileService {
         this.repository = repository;
     }
 
+    // ✅ Upload File
     public FileRecord upload(MultipartFile file) throws IOException {
 
-        // 🔴 Validate size (<10MB)
+        // 🔴 Check Empty File
+        if (file == null || file.isEmpty()) {
+            throw new ValidationException("Please select a file");
+        }
+
+        // 🔴 Validate File Size (<10MB)
         if (file.getSize() > 10 * 1024 * 1024) {
             throw new ValidationException("File size must be less than 10MB");
         }
 
-        // 🔴 Validate type
-        if (!file.getContentType().startsWith("image") &&
-                !file.getContentType().equals("application/pdf")) {
-            throw new ValidationException("Only images and PDF allowed");
+        // 🔴 Safe Content Type Validation
+        String contentType = file.getContentType();
+
+        if (contentType == null) {
+            throw new ValidationException("File type is missing");
         }
 
-        // 🔥 Generate UUID filename
-        String storedName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        // 🔴 Allow Only Images + PDF
+        if (!contentType.startsWith("image/")
+                && !contentType.equals("application/pdf")) {
 
-        File dest = new File(UPLOAD_DIR + storedName);
-        dest.getParentFile().mkdirs();
+            throw new ValidationException(
+                    "Only image and PDF files are allowed"
+            );
+        }
+
+        // ✅ Generate UUID File Name
+        String storedName =
+                UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+        // ✅ Create Upload Directory
+        File directory = new File(UPLOAD_DIR);
+
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        // ✅ Save File
+        File dest =
+                new File(UPLOAD_DIR + storedName);
 
         file.transferTo(dest);
 
-        // Save metadata
-        FileRecord record = FileRecord.builder()
-                .originalName(file.getOriginalFilename())
-                .storedName(storedName)
-                .fileType(file.getContentType())
-                .size(file.getSize())
-                .build();
+        // ✅ Save Metadata
+        FileRecord record =
+                FileRecord.builder()
+                        .originalName(file.getOriginalFilename())
+                        .storedName(storedName)
+                        .fileType(contentType)
+                        .size(file.getSize())
+                        .build();
 
         return repository.save(record);
     }
 
-    public File getFile(Long id) {
-        FileRecord record = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("File not found"));
+    // ✅ Download File
+    public Resource getFile(Long id) {
 
-        return new File(UPLOAD_DIR + record.getStoredName());
+        try {
+
+            FileRecord record =
+                    repository.findById(id)
+                            .orElseThrow(() ->
+                                    new RuntimeException("File not found"));
+
+            Path path =
+                    Paths.get(UPLOAD_DIR)
+                            .resolve(record.getStoredName());
+
+            Resource resource =
+                    new UrlResource(path.toUri());
+
+            if (resource.exists()) {
+                return resource;
+            }
+
+            throw new RuntimeException("File not found");
+
+        } catch (MalformedURLException e) {
+
+            throw new RuntimeException(
+                    "Error reading file"
+            );
+        }
     }
 }

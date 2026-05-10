@@ -11,20 +11,37 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFound(ResourceNotFoundException ex) {
-        return new ErrorResponse(ex.getMessage(), 404);
+
+        return new ErrorResponse(
+                ex.getMessage(),
+                404,
+                false
+        );
     }
 
-    // 🔴 Handle Validation
+    // 🔴 Handle Validation Error
     @ExceptionHandler(ValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidation(ValidationException ex) {
-        return new ErrorResponse(ex.getMessage(), 400);
+
+        return new ErrorResponse(
+                ex.getMessage(),
+                400,
+                false
+        );
     }
 
     // 🔴 Handle Generic Error
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleGeneric(Exception ex) {
-        return new ErrorResponse("Something went wrong", 500);
+
+        ex.printStackTrace(); // 🔥 IMPORTANT
+
+        return new ErrorResponse(
+                ex.getMessage(),
+                500,
+                false
+        );
     }
 }
