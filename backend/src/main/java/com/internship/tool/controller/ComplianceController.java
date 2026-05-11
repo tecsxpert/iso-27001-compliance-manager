@@ -6,6 +6,7 @@ import com.internship.tool.service.ComplianceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +25,7 @@ public class ComplianceController {
     @ApiResponse(responseCode = "200",
             description = "Record created successfully")
     @PostMapping
-    public ComplianceRecord create(
-            @RequestBody ComplianceRecord record) {
-
+    public ComplianceRecord create(@Valid @RequestBody ComplianceRecord record) {
         return service.createRecord(record);
     }
 
