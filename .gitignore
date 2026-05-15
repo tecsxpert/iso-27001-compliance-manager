@@ -1,3 +1,4 @@
+
 venv/
 __pycache__/
 *.pyc
@@ -5,3 +6,7 @@ __pycache__/
 chroma_data/
 node_modules/
 target/
+
+.env
+target/
+uploads/
