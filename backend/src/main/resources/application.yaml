@@ -27,3 +27,8 @@ spring:
       properties:
         mail.smtp.auth: true
         mail.smtp.starttls.enable: true
+
+
+        spring:
+          profiles:
+            active: dev
