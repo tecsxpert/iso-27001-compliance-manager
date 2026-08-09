@@ -1,24 +1,28 @@
 package com.internship.tool.dto;
 
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
+@Data
 public class ErrorResponse {
 
-    private boolean success;
     private String message;
     private int status;
+    private boolean success;
     private LocalDateTime timestamp;
 
     public ErrorResponse(String message, int status) {
-        this.success = false;
         this.message = message;
         this.status = status;
+        this.success = false;
         this.timestamp = LocalDateTime.now();
     }
 
-    // Getters
-    public boolean isSuccess() { return success; }
-    public String getMessage() { return message; }
-    public int getStatus() { return status; }
-    public LocalDateTime getTimestamp() { return timestamp; }
+    public ErrorResponse(String message, int status, boolean success) {
+        this.message = message;
+        this.status = status;
+        this.success = success;
+        this.timestamp = LocalDateTime.now();
+    }
 }
